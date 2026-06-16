@@ -91,3 +91,154 @@ button {
   background: var(--accent);
   color: #fff;
 }
+
+/* ─────────────────────────────────────────────
+   LAYOUT CON MENÙ LATERALE (desktop) / TENDINA (mobile)
+   ───────────────────────────────────────────── */
+
+.app {
+  display: flex;
+  min-height: 100svh;
+}
+
+/* Barra in alto: visibile SOLO su mobile */
+.mobile-topbar {
+  display: none;
+}
+
+/* Menù laterale */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 0.85rem;
+}
+
+.sidebar-brand {
+  font-size: 22px;
+  letter-spacing: 3px;
+  font-weight: 500;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  color: var(--text-h);
+  border: none;
+  border-radius: 9px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--bg);
+}
+
+.nav-item.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sidebar-foot {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.sidebar-email {
+  word-break: break-all;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-esci {
+  background: var(--surface);
+  color: var(--text-h);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+/* Area contenuto */
+.content {
+  flex: 1;
+  min-width: 0;
+  max-width: 1100px;
+  padding: 2rem 2.5rem;
+  box-sizing: border-box;
+}
+
+/* ─── MOBILE: sotto i 768px ─── */
+@media (max-width: 767px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .mobile-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-brand {
+    font-size: 19px;
+    letter-spacing: 2px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .hamburger {
+    background: transparent;
+    color: var(--text-h);
+    border: none;
+    font-size: 1.6rem;
+    padding: 0.1rem 0.5rem;
+    line-height: 1;
+  }
+
+  /* Il menù è nascosto finché non si tocca ☰ */
+  .sidebar {
+    display: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.85rem 1rem;
+  }
+
+  .sidebar.open {
+    display: flex;
+  }
+
+  /* Su mobile il nome è già nella barra in alto */
+  .sidebar-brand {
+    display: none;
+  }
+
+  .content {
+    max-width: 100%;
+    padding: 1.25rem 1rem;
+  }
+}

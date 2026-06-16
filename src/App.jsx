@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
-import { S, btnNav } from './comune'
+import { S } from './comune'
 import Dashboard from './schede/Dashboard'
 import Avvisi from './schede/Avvisi'
 import Clienti from './schede/Clienti'
@@ -9,6 +9,18 @@ import Fornitori from './schede/Fornitori'
 import Inventario from './schede/Inventario'
 import Veicoli from './schede/Veicoli'
 import Statistiche from './schede/Statistiche'
+
+// Voci del menù (ordine = come compaiono nella barra)
+const VOCI = [
+  { id: 'dashboard', label: 'Dashboard', icona: '🏠' },
+  { id: 'avvisi', label: 'Avvisi', icona: '🔔' },
+  { id: 'clienti', label: 'Clienti', icona: '👤' },
+  { id: 'funerali', label: 'Funerali', icona: '⚰️' },
+  { id: 'fornitori', label: 'Fornitori', icona: '🧾' },
+  { id: 'inventario', label: 'Inventario', icona: '📦' },
+  { id: 'veicoli', label: 'Veicoli', icona: '🚐' },
+  { id: 'statistiche', label: 'Statistiche', icona: '📊' },
+]
 
 export default function App() {
   // ─── AUTENTICAZIONE ───
@@ -20,6 +32,7 @@ export default function App() {
 
   // ─── NAVIGAZIONE E DATI ───
   const [pagina, setPagina] = useState('dashboard')
+  const [menuAperto, setMenuAperto] = useState(false)
   const [msg, setMsg] = useState('')
   const [funeraleDaAprire, setFuneraleDaAprire] = useState(null)
 
@@ -53,7 +66,7 @@ export default function App() {
   async function esci() {
     await supabase.auth.signOut()
     setClienti([]); setFunerali([]); setFornitori([]); setFatture([]); setInventario([]); setVeicoli([]); setManutenzioni([])
-    setPagina('dashboard'); setMsg('')
+    setPagina('dashboard'); setMsg(''); setMenuAperto(false)
     setAuthEmail(''); setAuthPass('')
   }
 
@@ -76,21 +89,24 @@ export default function App() {
     setManutenzioni(ma.data || [])
   }
 
-  // Cambio scheda azzerando il messaggio di conferma
+  // Cambio scheda: azzera il messaggio e chiude il menù (utile su mobile)
   function naviga(p) {
     setPagina(p)
     setMsg('')
+    setMenuAperto(false)
   }
 
-  // "Apri" un funerale dalla Dashboard o dagli Avvisi: vai alla scheda Funerali e aprilo in modifica
+  // "Apri" un funerale dalla Dashboard o dagli Avvisi
   function apriFunerale(f) {
     setFuneraleDaAprire(f)
     setPagina('funerali')
     setMsg('')
+    setMenuAperto(false)
   }
 
   if (!authReady) return null
 
+  // ─── Schermata di accesso ───
   if (!session) {
     return (
       <div style={S.wrap}>
@@ -109,53 +125,67 @@ export default function App() {
     )
   }
 
+  // ─── App con menù laterale ───
   return (
-    <div style={S.wrap}>
-      <div style={S.topbar}>
-        <span style={{ opacity: 0.7 }}>{session.user.email}</span>
-        <button style={S.btnEsci} onClick={esci}>Esci</button>
+    <div className="app">
+
+      {/* Barra in alto: solo su mobile */}
+      <div className="mobile-topbar">
+        <span className="mobile-brand">OBSEQUIA</span>
+        <button className="hamburger" onClick={() => setMenuAperto(a => !a)} aria-label="Menù">☰</button>
       </div>
 
-      <h1 style={S.h1}>OBSEQUIA</h1>
+      {/* Menù laterale (desktop) / a tendina (mobile) */}
+      <aside className={menuAperto ? 'sidebar open' : 'sidebar'}>
+        <div className="sidebar-brand">OBSEQUIA</div>
+        <nav className="nav-list">
+          {VOCI.map(v => (
+            <button
+              key={v.id}
+              className={pagina === v.id ? 'nav-item active' : 'nav-item'}
+              onClick={() => naviga(v.id)}
+            >
+              <span>{v.icona}</span> {v.label}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-foot">
+          <div className="sidebar-email">{session.user.email}</div>
+          <button className="sidebar-esci" onClick={esci}>Esci</button>
+        </div>
+      </aside>
 
-      <div style={S.nav}>
-        <button style={btnNav(pagina === 'dashboard')} onClick={() => naviga('dashboard')}>🏠 Dashboard</button>
-        <button style={btnNav(pagina === 'avvisi')} onClick={() => naviga('avvisi')}>🔔 Avvisi</button>
-        <button style={btnNav(pagina === 'clienti')} onClick={() => naviga('clienti')}>👤 Clienti</button>
-        <button style={btnNav(pagina === 'funerali')} onClick={() => naviga('funerali')}>⚰️ Funerali</button>
-        <button style={btnNav(pagina === 'fornitori')} onClick={() => naviga('fornitori')}>🧾 Fornitori</button>
-        <button style={btnNav(pagina === 'inventario')} onClick={() => naviga('inventario')}>📦 Inventario</button>
-        <button style={btnNav(pagina === 'veicoli')} onClick={() => naviga('veicoli')}>🚐 Veicoli</button>
-        <button style={btnNav(pagina === 'statistiche')} onClick={() => naviga('statistiche')}>📊 Statistiche</button>
-      </div>
+      {/* Contenuto */}
+      <main className="content">
+        {msg && <p style={S.ok}>{msg}</p>}
 
-      {msg && <p style={S.ok}>{msg}</p>}
+        {pagina === 'dashboard' && (
+          <Dashboard funerali={funerali} veicoli={veicoli} naviga={naviga} apriFunerale={apriFunerale} />
+        )}
+        {pagina === 'avvisi' && (
+          <Avvisi veicoli={veicoli} funerali={funerali} naviga={naviga} apriFunerale={apriFunerale} ricarica={caricaTutto} setMsg={setMsg} />
+        )}
+        {pagina === 'clienti' && (
+          <Clienti clienti={clienti} ricarica={caricaTutto} setMsg={setMsg} />
+        )}
+        {pagina === 'funerali' && (
+          <Funerali funerali={funerali} clienti={clienti} ricarica={caricaTutto} setMsg={setMsg}
+            funeraleDaAprire={funeraleDaAprire} setFuneraleDaAprire={setFuneraleDaAprire} />
+        )}
+        {pagina === 'fornitori' && (
+          <Fornitori fornitori={fornitori} fatture={fatture} ricarica={caricaTutto} setMsg={setMsg} />
+        )}
+        {pagina === 'inventario' && (
+          <Inventario inventario={inventario} ricarica={caricaTutto} setMsg={setMsg} />
+        )}
+        {pagina === 'veicoli' && (
+          <Veicoli veicoli={veicoli} manutenzioni={manutenzioni} ricarica={caricaTutto} setMsg={setMsg} />
+        )}
+        {pagina === 'statistiche' && (
+          <Statistiche funerali={funerali} />
+        )}
+      </main>
 
-      {pagina === 'dashboard' && (
-        <Dashboard funerali={funerali} veicoli={veicoli} naviga={naviga} apriFunerale={apriFunerale} />
-      )}
-      {pagina === 'avvisi' && (
-        <Avvisi veicoli={veicoli} funerali={funerali} naviga={naviga} apriFunerale={apriFunerale} ricarica={caricaTutto} setMsg={setMsg} />
-      )}
-      {pagina === 'clienti' && (
-        <Clienti clienti={clienti} ricarica={caricaTutto} setMsg={setMsg} />
-      )}
-      {pagina === 'funerali' && (
-        <Funerali funerali={funerali} clienti={clienti} ricarica={caricaTutto} setMsg={setMsg}
-          funeraleDaAprire={funeraleDaAprire} setFuneraleDaAprire={setFuneraleDaAprire} />
-      )}
-      {pagina === 'fornitori' && (
-        <Fornitori fornitori={fornitori} fatture={fatture} ricarica={caricaTutto} setMsg={setMsg} />
-      )}
-      {pagina === 'inventario' && (
-        <Inventario inventario={inventario} ricarica={caricaTutto} setMsg={setMsg} />
-      )}
-      {pagina === 'veicoli' && (
-        <Veicoli veicoli={veicoli} manutenzioni={manutenzioni} ricarica={caricaTutto} setMsg={setMsg} />
-      )}
-      {pagina === 'statistiche' && (
-        <Statistiche funerali={funerali} />
-      )}
     </div>
   )
 }
