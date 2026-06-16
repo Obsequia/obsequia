@@ -135,7 +135,7 @@ export default function App() {
         <Dashboard funerali={funerali} veicoli={veicoli} naviga={naviga} apriFunerale={apriFunerale} />
       )}
       {pagina === 'avvisi' && (
-        <Avvisi veicoli={veicoli} funerali={funerali} naviga={naviga} apriFunerale={apriFunerale} />
+        <Avvisi veicoli={veicoli} funerali={funerali} naviga={naviga} apriFunerale={apriFunerale} ricarica={caricaTutto} setMsg={setMsg} />
       )}
       {pagina === 'clienti' && (
         <Clienti clienti={clienti} ricarica={caricaTutto} setMsg={setMsg} />

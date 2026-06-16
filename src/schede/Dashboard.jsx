@@ -70,7 +70,7 @@ export default function Dashboard({ funerali, veicoli, naviga, apriFunerale }) {
 
   const funeraliOggi = prossimiFunerali.filter(f => f._d.getTime() === oggi.getTime()).length
 
-  // ─── Anniversari del decesso (prossimi 30 giorni) ───
+  // ─── Anniversari del decesso (prossimi 30 giorni, esclusi i gia' gestiti) ───
   const avvisiAnniv = []
   funerali.forEach(f => {
     if (!f.data_decesso) return
@@ -83,7 +83,10 @@ export default function Dashboard({ funerali, veicoli, naviga, apriFunerale }) {
     }
     const giorni = Math.round((ricorrenza - oggi) / (1000 * 60 * 60 * 24))
     const anni = anno - morte.getFullYear()
-    if (giorni <= PREAVVISO && anni >= 1) avvisiAnniv.push({ funerale: f, data: ricorrenza, giorni, anni })
+    if (giorni <= PREAVVISO && anni >= 1) {
+      const stato = f.anniversario_gestito_anno === anno ? f.anniversario_gestito_stato : null
+      if (!stato) avvisiAnniv.push({ funerale: f, data: ricorrenza, giorni, anni })
+    }
   })
   avvisiAnniv.sort((a, b) => a.giorni - b.giorni)
 
